@@ -31,8 +31,12 @@ def register(body: UserSchema, db: Session):
         hashed_password=hashed_pass,
     )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise e
 
     return new_user

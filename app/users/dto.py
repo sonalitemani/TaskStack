@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 import uuid
 from datetime import datetime
 from pydantic_partial import PartialModelMixin
@@ -21,7 +21,7 @@ class UserSchema(PartialModelMixin, BaseModel):
         min_length=3,
         max_length=30,
     )
-    email: str = Field(
+    email: EmailStr = Field(
         ...,
         min_length=3,
         max_length=100,

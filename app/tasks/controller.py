@@ -7,10 +7,14 @@ import uuid
 def create_task(body:TaskSchema , db: Session):
     data = body.model_dump()
     new_task = TaskModel(title =data['title'] , description = data['description'] , is_completed = data['is_completed'])
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
-    return new_task
+    try:
+        db.add(new_task)
+        db.commit()
+        db.refresh(new_task)
+    except Exception as e:
+        db.rollback()
+        raise e
+    return {"message": "Task created"}
 
 def get_tasks(db:Session):
     tasks = db.query(TaskModel).all()
@@ -40,12 +44,20 @@ def update_task(id:str,body:TaskUpdateSchema , db:Session):
     for key, value in body.model_dump().items():
         if value is not None:
             setattr(task , key , value)
-    db.commit()
-    db.refresh(task)
+    try:
+        db.commit()
+        db.refresh(task)
+    except Exception as e:
+        db.rollback()
+        raise e
     return task
 
 def delete_task(id:str , db:Session):
     task = get_task_by_id(id, db)
-    db.delete(task)
-    db.commit()
+    try:
+        db.delete(task)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e
     return None
