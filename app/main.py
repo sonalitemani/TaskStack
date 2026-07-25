@@ -5,7 +5,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.database import Base, engine
 from app.tasks.model import *
 from app.tasks.router import task_routes
-from app.exceptions import CustomException
 from app.utils.exception import register_error_handlers
 Base.metadata.create_all(engine)
 
