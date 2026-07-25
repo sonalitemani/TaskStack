@@ -1,4 +1,4 @@
-from app.tasks.dtos import TaskSchema
+from app.tasks.dtos import TaskSchema ,TaskUpdateSchema
 from sqlalchemy.orm import Session
 from app.tasks.model import TaskModel
 from fastapi import HTTPException
@@ -23,11 +23,13 @@ def get_task_by_id(id:str , db:Session):
 
     return task
 
-def update_task(id:str,body:TaskSchema , db:Session):
-    task = get_task_by_id(id, db)
-    task.title = body.title
-    task.description = body.description
-    task.is_completed = body.is_completed
+def update_task(id:str,body:TaskUpdateSchema , db:Session):
+    task = db.query(TaskModel).get(id)
+    if not task:
+        raise HTTPException(status_code=404 , detail="Task not found")
+    for key, value in body.model_dump().items():
+        if value is not None:
+            setattr(task , key , value)
     db.commit()
     db.refresh(task)
     return task

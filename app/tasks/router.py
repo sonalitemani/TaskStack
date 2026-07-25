@@ -1,7 +1,7 @@
 from fastapi import APIRouter , Depends 
 from sqlalchemy.orm import Session
 from app.tasks import controller
-from app.tasks.dtos import TaskSchema
+from app.tasks.dtos import TaskSchema ,TaskUpdateSchema
 from app.database import get_db
 import uuid
 
@@ -20,7 +20,7 @@ def get_task_by_id_route(id:str , db= Depends(get_db)):
     return controller.get_task_by_id(id, db)
 
 @task_routes.patch('update/{id}')
-def update_task_route(id:str , body:TaskSchema , db= Depends(get_db)):
+def update_task_route(id:str , body:TaskUpdateSchema , db= Depends(get_db)):
     return controller.update_task(id, body, db)
 
 @task_routes.delete('delete/{id}')
