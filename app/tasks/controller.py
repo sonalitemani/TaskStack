@@ -1,7 +1,7 @@
 from app.tasks.dtos import TaskSchema ,TaskUpdateSchema
 from sqlalchemy.orm import Session
 from app.tasks.model import TaskModel
-from app.exceptions import CustomException
+from app.constants.exception import CustomException
 import uuid
 
 def create_task(body:TaskSchema , db: Session):
