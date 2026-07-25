@@ -16,10 +16,10 @@ def register(body: UserSchema, db: Session):
     data = body.model_dump()
 
     if db.query(UserModel).filter(UserModel.email == data["email"]).first():
-        raise CustomException("User email already exists", status_code=400)
+        raise CustomException("User with this email already exists", status_code=400)
 
     if db.query(UserModel).filter(UserModel.username == data["username"]).first():
-        raise CustomException("Username already exists", status_code=400)
+        raise CustomException("User with this username already exists", status_code=400)
 
     hashed_pass = get_password_hash(data["password"])
 
