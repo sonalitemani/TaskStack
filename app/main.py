@@ -5,14 +5,19 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.database import Base, engine
 from app.tasks.model import *
 from app.tasks.router import task_routes
+from app.users.router import user_routes
 from app.utils.exception import register_error_handlers
+
 Base.metadata.create_all(engine)
+
 
 app = FastAPI()
 app.include_router(task_routes)
+app.include_router(user_routes)
 
 register_error_handlers(app)
 
-@app.get('/')
+
+@app.get("/")
 def read_root():
     return {"message": "Welcome to TaskStack API"}

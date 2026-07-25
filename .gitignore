@@ -147,8 +147,7 @@ cython_debug/
 # PyCharm
 .idea/
 
-# VS Code
-.vscode/
+
 
 # macOS system files
 .DS_Store
