@@ -1,7 +1,7 @@
 from app.tasks.dtos import TaskSchema ,TaskUpdateSchema
 from sqlalchemy.orm import Session
 from app.tasks.model import TaskModel
-from fastapi import HTTPException
+from app.exceptions import CustomException
 import uuid
 
 def create_task(body:TaskSchema , db: Session):
@@ -10,23 +10,33 @@ def create_task(body:TaskSchema , db: Session):
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
-    return {"message": "Task created"}
+    return new_task
 
 def get_tasks(db:Session):
     tasks = db.query(TaskModel).all()
     return tasks
 
 def get_task_by_id(id:str , db:Session):
-    task = db.query(TaskModel).get(id)
+    try:
+        uuid_obj = uuid.UUID(id)
+    except ValueError:
+        raise CustomException("Task not found", status_code=404)
+
+    task = db.query(TaskModel).get(uuid_obj)
     if not task:
-        raise HTTPException(status_code=404 , detail="Task not found")
+        raise CustomException("Task not found", status_code=404)
 
     return task
 
 def update_task(id:str,body:TaskUpdateSchema , db:Session):
-    task = db.query(TaskModel).get(id)
+    try:
+        uuid_obj = uuid.UUID(id)
+    except ValueError:
+        raise CustomException("Task not found", status_code=404)
+
+    task = db.query(TaskModel).get(uuid_obj)
     if not task:
-        raise HTTPException(status_code=404 , detail="Task not found")
+        raise CustomException("Task not found", status_code=404)
     for key, value in body.model_dump().items():
         if value is not None:
             setattr(task , key , value)
@@ -38,4 +48,4 @@ def delete_task(id:str , db:Session):
     task = get_task_by_id(id, db)
     db.delete(task)
     db.commit()
-    return {"message": "Task deleted"}
+    return None
