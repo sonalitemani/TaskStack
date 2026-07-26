@@ -1,15 +1,37 @@
 from sqlalchemy.orm import Session
-from app.users.dto import UserSchema
+from app.users.dto import UserSchema, LoginUserSchema
 from pwdlib import PasswordHash
 from app.users.model import UserModel
 from app.constants.exception import CustomException
-
+import jwt
+from app.config import settings
+from datetime import timedelta, datetime, timezone
 
 password_hash = PasswordHash.recommended()
+
+JWT_SECRET = settings.JWT_SECRET
+ALGORITHM = settings.JWT_ALGORITHM
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+JWT_REFRESH_TOKEN_EXPIRE_MINUTES = settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES
 
 
 def get_password_hash(password):
     return password_hash.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return password_hash.verify(plain_password, hashed_password)
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 def register(body: UserSchema, db: Session):
@@ -40,3 +62,17 @@ def register(body: UserSchema, db: Session):
         raise e
 
     return new_user
+
+
+def login_user(body: LoginUserSchema, db: Session):
+    user = db.query(UserModel).filter(UserModel.email == body.email).first()
+    if not user:
+        raise CustomException("User not found", status_code=404)
+
+    if not verify_password(body.password, user.hashed_password):
+        raise CustomException("Invalid password", status_code=401)
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+
+    return {"access_token": access_token, "refresh_token": refresh_token, user: user}

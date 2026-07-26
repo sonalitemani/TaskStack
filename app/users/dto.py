@@ -2,7 +2,10 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 import uuid
 from datetime import datetime
 from pydantic_partial import PartialModelMixin
-from pydantic.fields import FieldInfo
+from typing import Annotated
+
+EmailValidation = Annotated[EmailStr, Field(..., min_length=3, max_length=100)]
+PasswordValidation = Annotated[str, Field(..., min_length=8, max_length=255)]
 
 
 class UserSchema(PartialModelMixin, BaseModel):
@@ -21,16 +24,8 @@ class UserSchema(PartialModelMixin, BaseModel):
         min_length=3,
         max_length=30,
     )
-    email: EmailStr = Field(
-        ...,
-        min_length=3,
-        max_length=100,
-    )
-    password: str = Field(
-        ...,
-        min_length=8,
-        max_length=255,
-    )
+    email: EmailValidation
+    password: PasswordValidation
 
 
 UserUpdateSchema = UserSchema.model_as_partial()
@@ -45,3 +40,15 @@ class UserResponseSchema(BaseModel):
     email: str
     created_at: datetime
     updated_at: datetime
+
+
+class LoginUserSchema(BaseModel):
+    email: EmailValidation
+    password: PasswordValidation
+
+
+class LoginResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    access_token: str
+    refresh_token: str
+    user: UserResponseSchema
