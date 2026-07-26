@@ -7,7 +7,7 @@ from app.users.dto import (
     LoginUserSchema,
     LoginResponseSchema,
 )
-from app.users.controller import register
+from app.users.controller import register, login_user
 from app.constants.response_model import SuccessResponseDict, SuccessResponseSchema
 from app.database import get_db
 
@@ -27,7 +27,7 @@ def register_user(
 
 
 @user_routes.post("/login", response_model=SuccessResponseSchema[LoginResponseSchema])
-def login_user(
+def login_user_route(
     body: LoginUserSchema, db: Session = Depends(get_db)
 ) -> SuccessResponseDict:
     user = login_user(body, db)

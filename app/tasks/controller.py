@@ -1,12 +1,18 @@
-from app.tasks.dtos import TaskSchema ,TaskUpdateSchema
+from app.tasks.dtos import TaskSchema, TaskUpdateSchema
 from sqlalchemy.orm import Session
 from app.tasks.model import TaskModel
 from app.constants.exception import CustomException
 import uuid
+from fastapi import Request
 
-def create_task(body:TaskSchema , db: Session):
+
+def create_task(body: TaskSchema, db: Session):
     data = body.model_dump()
-    new_task = TaskModel(title =data['title'] , description = data['description'] , is_completed = data['is_completed'])
+    new_task = TaskModel(
+        title=data["title"],
+        description=data["description"],
+        is_completed=data["is_completed"],
+    )
     try:
         db.add(new_task)
         db.commit()
@@ -16,11 +22,14 @@ def create_task(body:TaskSchema , db: Session):
         raise e
     return {"message": "Task created"}
 
-def get_tasks(db:Session):
+
+def get_tasks(db: Session, request: Request[UserResponseSchema]):
+    user = getattr(request.state, "user", None)
     tasks = db.query(TaskModel).all()
     return tasks
 
-def get_task_by_id(id:str , db:Session):
+
+def get_task_by_id(id: str, db: Session):
     try:
         uuid_obj = uuid.UUID(id)
     except ValueError:
@@ -32,7 +41,8 @@ def get_task_by_id(id:str , db:Session):
 
     return task
 
-def update_task(id:str,body:TaskUpdateSchema , db:Session):
+
+def update_task(id: str, body: TaskUpdateSchema, db: Session):
     try:
         uuid_obj = uuid.UUID(id)
     except ValueError:
@@ -43,7 +53,7 @@ def update_task(id:str,body:TaskUpdateSchema , db:Session):
         raise CustomException("Task not found", status_code=404)
     for key, value in body.model_dump().items():
         if value is not None:
-            setattr(task , key , value)
+            setattr(task, key, value)
     try:
         db.commit()
         db.refresh(task)
@@ -52,7 +62,8 @@ def update_task(id:str,body:TaskUpdateSchema , db:Session):
         raise e
     return task
 
-def delete_task(id:str , db:Session):
+
+def delete_task(id: str, db: Session):
     task = get_task_by_id(id, db)
     try:
         db.delete(task)

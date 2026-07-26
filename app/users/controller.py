@@ -28,9 +28,20 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -75,4 +86,4 @@ def login_user(body: LoginUserSchema, db: Session):
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
-    return {"access_token": access_token, "refresh_token": refresh_token, user: user}
+    return {"access_token": access_token, "refresh_token": refresh_token, "user": user}

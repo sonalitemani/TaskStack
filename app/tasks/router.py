@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Request, Depends, status
 from sqlalchemy.orm import Session
 from app.tasks import controller
 from app.tasks.dtos import TaskSchema, TaskUpdateSchema, TaskResponseSchema
@@ -6,8 +6,14 @@ from app.database import get_db
 import uuid
 from typing import List
 from app.constants.response_model import SuccessResponseDict, SuccessResponseSchema
+from app.utils.helpers import is_authenticated
+from app.users.model import UserModel
 
-task_routes = APIRouter(prefix="/tasks", tags=["Tasks"])
+task_routes = APIRouter(
+    prefix="/tasks",
+    tags=["Tasks"],
+    dependencies=[Depends(is_authenticated)],
+)
 
 
 @task_routes.post(
@@ -16,7 +22,9 @@ task_routes = APIRouter(prefix="/tasks", tags=["Tasks"])
     status_code=status.HTTP_201_CREATED,
 )
 def create_task_route(
-    body: TaskSchema, db: Session = Depends(get_db)
+    body: TaskSchema,
+    request: Request,
+    db: Session = Depends(get_db),
 ) -> SuccessResponseDict:
     task = controller.create_task(body, db)
     return {
@@ -31,8 +39,10 @@ def create_task_route(
     response_model=SuccessResponseSchema[List[TaskResponseSchema]],
     status_code=status.HTTP_200_OK,
 )
-def get_tasks_route(db: Session = Depends(get_db)) -> SuccessResponseDict:
-    tasks = controller.get_tasks(db)
+def get_tasks_route(
+    request: Request, db: Session = Depends(get_db)
+) -> SuccessResponseDict:
+    tasks = controller.get_tasks(db, request)
     return {
         "message": "Tasks retrieved successfully",
         "status": status.HTTP_200_OK,
