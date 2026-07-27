@@ -27,5 +27,6 @@ class TaskResponseSchema(BaseModel):
     title: str
     description: str | None
     is_completed: bool
+    user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime

@@ -6,12 +6,14 @@ import uuid
 from fastapi import Request
 
 
-def create_task(body: TaskSchema, db: Session):
+def create_task(body: TaskSchema, db: Session, request: Request):
     data = body.model_dump()
+    user = getattr(request.state, "user", None)
     new_task = TaskModel(
         title=data["title"],
         description=data["description"],
         is_completed=data["is_completed"],
+        user_id=user.id,
     )
     try:
         db.add(new_task)
@@ -20,10 +22,10 @@ def create_task(body: TaskSchema, db: Session):
     except Exception as e:
         db.rollback()
         raise e
-    return {"message": "Task created"}
+    return new_task
 
 
-def get_tasks(db: Session, request: Request[UserResponseSchema]):
+def get_tasks(db: Session, request: Request):
     user = getattr(request.state, "user", None)
     tasks = db.query(TaskModel).all()
     return tasks

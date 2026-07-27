@@ -26,7 +26,7 @@ def create_task_route(
     request: Request,
     db: Session = Depends(get_db),
 ) -> SuccessResponseDict:
-    task = controller.create_task(body, db)
+    task = controller.create_task(body, db, request)
     return {
         "message": "Task created successfully",
         "status": status.HTTP_201_CREATED,
