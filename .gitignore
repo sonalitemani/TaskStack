@@ -165,6 +165,9 @@ Icon
 
 # Docker / docker-compose overrides
 docker-compose.override.yml
+data
 
 # Ruff cache
 .ruff_cache/
+
+
